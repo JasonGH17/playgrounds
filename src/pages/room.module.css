@@ -1,0 +1,15 @@
+.menu {
+	display: flex;
+	flex-direction: row;
+	width: 650px;
+	justify-content: space-between;
+}
+
+.chat {
+    height: 300px;
+}
+
+.chat > div> div {
+    height: 280px;
+    align-items: flex-start;
+}

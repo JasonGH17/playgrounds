@@ -27,6 +27,10 @@ export default function handler(
 				const db = JSON.parse(fs.readFileSync(dbp, { encoding: 'utf-8' }));
 				io.to(data.room).emit('update-player-list', db[data.room].players);
 
+				socket.on('new-msg', (msg: { name: string; msg: string }) => {
+					io.to(data.room).emit('new-msg', msg);
+				});
+
 				socket.on('disconnect', () => {
 					console.log("socket %s dc'ed", socket.id);
 
