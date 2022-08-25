@@ -1,0 +1,48 @@
+import type { Server as http } from 'http';
+import { Server as SS } from 'socket.io';
+import type { NextApiRequest } from 'next';
+import type NextApiSocketResponse from '../../types/SocketResponse';
+
+import path from 'path';
+import fs from 'fs';
+
+export default function handler(
+	req: NextApiRequest,
+	res: NextApiSocketResponse
+) {
+	if (!res.socket.server.io) {
+		const server: http = res.socket.server as never; // i think works?
+		const io = new SS(server);
+		res.socket.server.io = io;
+
+		io.on('connection', (socket) => {
+			console.log('New socket connected\nID:%s', socket.id);
+
+			socket.on('join-room', (data: { name: string; room: string }) => {
+				console.log('Socket %s connected to room %s', socket.id, data.room);
+				socket.join(data.room);
+
+				socket.on('disconnect', () => {
+					console.log("socket %s dc'ed", socket.id)
+
+					const dbp = path.join(process.cwd(), './src/json/rooms.json');
+					const db = JSON.parse(fs.readFileSync(dbp, { encoding: 'utf-8' }));
+					db[data.room].players = db[data.room].players.filter(
+						(val: string) => val !== data.name
+					);
+
+					if(db[data.room].players.length == 0) delete db[data.room]
+
+					fs.writeFileSync(dbp, JSON.stringify(db, null, 2));
+				});
+			});
+		});
+	}
+	res.end();
+}
+
+export const config = {
+	api: {
+		bodyParser: false,
+	},
+};
