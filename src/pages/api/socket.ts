@@ -15,6 +15,8 @@ export default function handler(
 		const io = new SS(server);
 		res.socket.server.io = io;
 
+		const dbp = path.join(process.cwd(), './src/json/rooms.json');
+
 		io.on('connection', (socket) => {
 			console.log('New socket connected\nID:%s', socket.id);
 
@@ -22,16 +24,18 @@ export default function handler(
 				console.log('Socket %s connected to room %s', socket.id, data.room);
 				socket.join(data.room);
 
-				socket.on('disconnect', () => {
-					console.log("socket %s dc'ed", socket.id)
+				const db = JSON.parse(fs.readFileSync(dbp, { encoding: 'utf-8' }));
+				io.to(data.room).emit('update-player-list', db[data.room].players);
 
-					const dbp = path.join(process.cwd(), './src/json/rooms.json');
+				socket.on('disconnect', () => {
+					console.log("socket %s dc'ed", socket.id);
+
 					const db = JSON.parse(fs.readFileSync(dbp, { encoding: 'utf-8' }));
 					db[data.room].players = db[data.room].players.filter(
 						(val: string) => val !== data.name
 					);
 
-					if(db[data.room].players.length == 0) delete db[data.room]
+					if (db[data.room].players.length == 0) delete db[data.room];
 
 					fs.writeFileSync(dbp, JSON.stringify(db, null, 2));
 				});

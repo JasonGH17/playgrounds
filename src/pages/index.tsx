@@ -24,15 +24,14 @@ const Home: NextPage = () => {
 			body: JSON.stringify({ code, name }),
 		})
 			.then((res) => {
-				if (res.ok) return res.json();
+				if (res.ok) {
+					global.setRoom(code);
+					global.setName(name);
+
+					router.push('/room');
+				}
 				alert('Invalid room code.');
 			})
-			.then((json) => {
-				global.setRoom(json.code);
-				global.setName(name);
-
-				router.push('/room');
-			});
 	};
 
 	const createRoom = () => {
