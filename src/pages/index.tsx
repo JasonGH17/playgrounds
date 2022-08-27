@@ -30,7 +30,7 @@ const Home: NextPage = () => {
 
 					router.push('/room');
 				}
-				alert('Invalid room code.');
+				else alert('Invalid room code.');
 			})
 	};
 
