@@ -13,6 +13,7 @@ const Room: NextPage = () => {
 	const [socket, setsocket] = useState<Socket>();
 
 	const [players, setplayers] = useState<string[]>([]);
+	const [admin, setadmin] = useState<string>('');
 	const [messages, setmessages] = useState<
 		Array<{ name: string; msg: string }>
 	>([]);
@@ -25,11 +26,15 @@ const Room: NextPage = () => {
 		const socket = io();
 		socket.emit('join-room', { room, name });
 
-		socket.on('update-player-list', (players: string[]) => setplayers(players));
+		socket.on('update-player-list', (room: {players: string[], admin: string}) => {setplayers(room.players); setadmin(room.admin)});
 
 		socket.on('new-msg', (msg: { name: string; msg: string }) =>
 			setmessages((msgs) => [...msgs, msg])
 		);
+
+		socket.on('start-xo', () => {
+			console.log('start xo')
+		})
 
 		setsocket(socket);
 
@@ -41,6 +46,12 @@ const Room: NextPage = () => {
 	function sendMsg() {
 		socket?.emit('new-msg', { name, msg: message });
 		setmessage('');
+	}
+
+	function startxo() {
+		socket?.emit('start-xo', {name}, (fail: boolean) => {
+			if(fail) alert("Failed to start XO")
+		})
 	}
 
 	return (
@@ -89,6 +100,7 @@ const Room: NextPage = () => {
 						))}
 					</div>
 				</div>
+				{admin === name && <button onClick={startxo}>Play XO</button>}
 			</div>
 		</>
 	);

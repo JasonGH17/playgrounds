@@ -1,5 +1,5 @@
 import type { Server as http } from 'http';
-import { Server as SS } from 'socket.io';
+import { Server as SS, Socket } from 'socket.io';
 import type { NextApiRequest } from 'next';
 import type NextApiSocketResponse from '../../types/SocketResponse';
 
@@ -17,7 +17,7 @@ export default function handler(
 
 		const dbp = path.join(process.cwd(), './src/json/rooms.json');
 
-		io.on('connection', (socket) => {
+		io.on('connection', (socket: Socket) => {
 			console.log('New socket connected\nID:%s', socket.id);
 
 			socket.on('join-room', (data: { name: string; room: string }) => {
@@ -25,11 +25,18 @@ export default function handler(
 				socket.join(data.room);
 
 				const db = JSON.parse(fs.readFileSync(dbp, { encoding: 'utf-8' }));
-				io.to(data.room).emit('update-player-list', db[data.room].players);
+				io.to(data.room).emit('update-player-list', {players: db[data.room].players, admin: db[data.room].admin});
 
 				socket.on('new-msg', (msg: { name: string; msg: string }) => {
 					io.to(data.room).emit('new-msg', msg);
 				});
+
+				socket.on('start-xo', (msg: {name: string}, callback: (fail: boolean)=>void) => {
+					if(db[data.room].admin === msg.name) {
+						io.to(data.room).emit('start-xo');
+						callback(false)
+					} else callback(true)
+				})
 
 				socket.on('disconnect', () => {
 					console.log("socket %s dc'ed", socket.id);

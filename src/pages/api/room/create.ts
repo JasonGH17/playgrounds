@@ -20,7 +20,7 @@ export default function handler(
 
 	const code = randomCode(Object.keys(db));
 
-	db[code] = { players: [name] };
+	db[code] = { players: [name], admin: name };
 
 	fs.writeFileSync(dbp, JSON.stringify(db, null, 2));
 
