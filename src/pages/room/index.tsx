@@ -1,16 +1,16 @@
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import { useContext, useEffect, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
-import Divider from '../components/divider';
-import { State } from '../context';
+import { useRouter } from 'next/router';
+import Divider from '../../components/divider';
+import { State } from '../../context';
 
-import styles from './room.module.css';
+import styles from './index.module.css';
 
 const Room: NextPage = () => {
-	const { room, name } = useContext(State);
+	const { room, name, socket } = useContext(State);
 
-	const [socket, setsocket] = useState<Socket>();
+	const router = useRouter()
 
 	const [players, setplayers] = useState<string[]>([]);
 	const [admin, setadmin] = useState<string>('');
@@ -21,9 +21,6 @@ const Room: NextPage = () => {
 	const [message, setmessage] = useState<string>('');
 
 	useEffect(() => {
-		(async () => await fetch('/api/socket'))();
-
-		const socket = io();
 		socket.emit('join-room', { room, name });
 
 		socket.on('update-player-list', (room: {players: string[], admin: string}) => {setplayers(room.players); setadmin(room.admin)});
@@ -33,24 +30,23 @@ const Room: NextPage = () => {
 		);
 
 		socket.on('start-xo', () => {
-			console.log('start xo')
+			router.push('/xo')
 		})
 
-		setsocket(socket);
-
 		return () => {
-			socket?.close();
+			socket.close();
 		};
 	}, [name, room]);
 
 	function sendMsg() {
-		socket?.emit('new-msg', { name, msg: message });
+		socket.emit('new-msg', { name, msg: message });
 		setmessage('');
 	}
 
 	function startxo() {
-		socket?.emit('start-xo', {name}, (fail: boolean) => {
+		socket.emit('start-xo', {name}, (fail: boolean) => {
 			if(fail) alert("Failed to start XO")
+			else router.push('/xo')
 		})
 	}
 

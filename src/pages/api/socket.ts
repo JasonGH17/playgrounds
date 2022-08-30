@@ -1,5 +1,5 @@
 import type { Server as http } from 'http';
-import { Server as SS, Socket } from 'socket.io';
+import { Server as SS } from 'socket.io';
 import type { NextApiRequest } from 'next';
 import type NextApiSocketResponse from '../../types/SocketResponse';
 
@@ -17,7 +17,7 @@ export default function handler(
 
 		const dbp = path.join(process.cwd(), './src/json/rooms.json');
 
-		io.on('connection', (socket: Socket) => {
+		io.on('connection', (socket: any) => {
 			console.log('New socket connected\nID:%s', socket.id);
 
 			socket.on('join-room', (data: { name: string; room: string }) => {
